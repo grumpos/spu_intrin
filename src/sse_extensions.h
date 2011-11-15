@@ -145,8 +145,8 @@ inline __m128i _mm_cmpgt_epu32( __m128i _A, __m128i _B )
 	const __m128i _B_shift		= _mm_srli_epi32( _B, 1 );
 	const __m128i _A_LSB		= _mm_srli_epi32( _mm_slli_epi32( _A, 31 ), 31 );
 	const __m128i _B_LSB		= _mm_srli_epi32( _mm_slli_epi32( _B, 31 ), 31 );
-	const __m128i less_shifted  = _mm_cmpgt_epi32( _A_shift, _B_shift );
-	const __m128i equal_shifted = _mm_cmpeq_epi32( _A_shift, _B_shift );
+	const __m128i less_shifted  	= _mm_cmpgt_epi32( _A_shift, _B_shift );
+	const __m128i equal_shifted 	= _mm_cmpeq_epi32( _A_shift, _B_shift );
 	const __m128i less_LSB		= _mm_cmpgt_epi32( _A_LSB, _B_LSB );
 	return _mm_or_si128( less_shifted, _mm_and_si128( equal_shifted, less_LSB ) );
 }
@@ -157,8 +157,8 @@ inline __m128i _mm_cmpgt_epu16( __m128i _A, __m128i _B )
 	const __m128i _B_shift		= _mm_srli_epi16( _B, 1 );
 	const __m128i _A_LSB		= _mm_srli_epi16( _mm_slli_epi16( _A, 15 ), 15 );
 	const __m128i _B_LSB		= _mm_srli_epi16( _mm_slli_epi16( _B, 15 ), 15 );
-	const __m128i less_shifted  = _mm_cmpgt_epi16( _A_shift, _B_shift );
-	const __m128i equal_shifted = _mm_cmpeq_epi16( _A_shift, _B_shift );
+	const __m128i less_shifted  	= _mm_cmpgt_epi16( _A_shift, _B_shift );
+	const __m128i equal_shifted 	= _mm_cmpeq_epi16( _A_shift, _B_shift );
 	const __m128i less_LSB		= _mm_cmpgt_epi16( _A_LSB, _B_LSB );
 	return _mm_or_si128( less_shifted, _mm_and_si128( equal_shifted, less_LSB ) );
 }
@@ -169,8 +169,8 @@ inline __m128i _mm_cmpgt_epu8( __m128i _A, __m128i _B )
 	const __m128i _B_shift		= _mm_srli_epi8( _B, 1 );
 	const __m128i _A_LSB		= _mm_srli_epi8( _mm_slli_epi8( _A, 7 ), 7 );
 	const __m128i _B_LSB		= _mm_srli_epi8( _mm_slli_epi8( _B, 7 ), 7 );
-	const __m128i less_shifted  = _mm_cmpgt_epi8( _A_shift, _B_shift );
-	const __m128i equal_shifted = _mm_cmpeq_epi8( _A_shift, _B_shift );
+	const __m128i less_shifted  	= _mm_cmpgt_epi8( _A_shift, _B_shift );
+	const __m128i equal_shifted 	= _mm_cmpeq_epi8( _A_shift, _B_shift );
 	const __m128i less_LSB		= _mm_cmpgt_epi8( _A_LSB, _B_LSB );
 	return _mm_or_si128( less_shifted, _mm_and_si128( equal_shifted, less_LSB ) );
 }
