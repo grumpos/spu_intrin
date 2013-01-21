@@ -13,7 +13,7 @@ static vector<string> ErrorMessages;
 
 bool operator==( __m128 lhs, __m128 rhs )
 {
-	return  0 != memcmp( &lhs, &rhs, sizeof(__m128) );
+	return  0 == memcmp( &lhs, &rhs, sizeof(__m128) );
 }
 
 void SPUTest_Expect( __m128 Result, __m128 Expected, const char* ErrorMsg )

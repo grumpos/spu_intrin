@@ -40,13 +40,6 @@ const uint64_t r1 = (uint16_t)_mm_extract_epi16(_mm_castps_si128(ra), 5);
 const uint64_t r2 = (uint16_t)_mm_extract_epi16(_mm_castps_si128(ra), 6);
 const uint64_t r3 = (uint16_t)_mm_extract_epi16(_mm_castps_si128(ra), 7);
 return (r3 << 48) | (r2 << 32) | (r1 << 16) | r0;
-	/*uint64_t r; 
-	uint16_t* pr = (uint16_t*)&r;
-	*pr =	(uint16_t)_mm_extract_epi16((ra), 7);
-	*(pr+1) =	(uint16_t)_mm_extract_epi16((ra), 6);
-	*(pr+2) =	(uint16_t)_mm_extract_epi16((ra), 5);
-	*(pr+3) =	(uint16_t)_mm_extract_epi16((ra), 4);
-	return r;*/
 }
 
 inline float si_to_float_aux(__m128 ra)
@@ -64,7 +57,7 @@ return (double&)u;
 /*
  * Convert to scalar
  */
-
+#if 0
 #define si_to_char(ra)		(int8_t)(uint16_t)_mm_extract_epi16(_mm_castps_si128((ra)), 6)
 #define si_to_uchar(ra)     (uint8_t)(uint16_t)_mm_extract_epi16(_mm_castps_si128((ra)), 6)
 #define si_to_short(ra)     (int16_t)_mm_extract_epi16(_mm_castps_si128((ra)), 6)
@@ -75,18 +68,48 @@ return (double&)u;
 #define si_to_ullong(ra)    (uint64_t)si_to_ullong_aux((ra))
 #define si_to_float(ra)     si_to_float_aux((ra))
 #define si_to_double(ra)    si_to_double_aux((ra))
-#define si_to_ptr(ra)       (void*)si_to_ullong_aux((ra))
+//#define si_to_ptr(ra)       (void*)si_to_ullong_aux((ra))
+#else
+#define si_to_char(ra)		(int8_t)_mm_extract_epi8(_mm_castps_si128((ra)), 12)
+#define si_to_uchar(ra)     (uint8_t)_mm_extract_epi8(_mm_castps_si128((ra)), 12)
+#define si_to_short(ra)     (int16_t)_mm_extract_epi16(_mm_castps_si128((ra)), 6)
+#define si_to_ushort(ra)    (uint16_t)_mm_extract_epi16(_mm_castps_si128((ra)), 6)
+#define si_to_int(ra)       (int32_t)_mm_extract_epi32(_mm_castps_si128((ra)), 3)
+#define si_to_uint(ra)      (uint32_t)_mm_extract_epi32(_mm_castps_si128((ra)), 3)
+#define si_to_llong(ra)     (int64_t)_mm_extract_epi64(_mm_castps_si128((ra)), 1)
+#define si_to_ullong(ra)    (uint64_t)_mm_extract_epi64(_mm_castps_si128((ra)), 1)
+#define si_to_float(ra)     (float)_mm_extract_ps(_mm_castps_si128((ra)), 3)
+#define si_to_double(ra)    (double)_mm_extract_epi64(_mm_castps_si128((ra)), 1)
+//#define si_to_ptr(ra)       (void*)si_to_ullong_aux((ra))\
+
+#define si_from_char(s)		_mm_insert_epi8(_mm_setzero_si128(), (int)s, 12)
+#define si_from_uchar(s)    _mm_insert_epi8(_mm_setzero_si128(), (int)s, 12)
+#define si_from_short(s)    _mm_insert_epi16(_mm_setzero_si128(), (int)s, 6)
+#define si_from_ushort(s)   _mm_insert_epi16(_mm_setzero_si128(), (int)s, 6)
+#define si_from_int(s)      _mm_insert_epi32(_mm_setzero_si128(), (int)s, 3)
+#define si_from_uint(s)     _mm_insert_epi32(_mm_setzero_si128(), (int)s, 3)
+#define si_from_llong(s)    _mm_insert_epi64(_mm_setzero_si128(), (int64_t)s, 1)
+#define si_from_ullong(s)   _mm_insert_epi64(_mm_setzero_si128(), (int64_t)s, 1)
+#define si_from_float(s)    _mm_insert_epi32(_mm_setzero_si128(), (int)s, 3)
+#define si_from_double(s)   _mm_insert_epi64(_mm_setzero_si128(), (int64_t)s, 1)
+#endif
 
 /*
  * Constant-Formation Instructions 
  */
 
-inline GPR_t si_ilh	( const int16_t I16 )	{ return _mm_castsi128_ps( _mm_set1_epi16( I16 ) ); }
-inline GPR_t si_ilhu( const int16_t I16 )	{ return _mm_castsi128_ps( _mm_set1_epi32( (int32_t)I16 << 16 ) ); }
-inline GPR_t si_il	( const int16_t I16 )	{ return _mm_castsi128_ps( _mm_set1_epi32( (int32_t)I16 ) ); }
-inline GPR_t si_ila	( const int32_t I18 )	{ return _mm_castsi128_ps( _mm_set1_epi32( I18 ) ); }
-inline GPR_t si_iohl( GPR_t RA, const int16_t I16 ){ return _mm_castsi128_ps( _mm_or_si128( _mm_castps_si128( RA ), _mm_set1_epi32( I16 ) ) ); }
-//inline GPR_t si_iohl( GPR_t RA, const int16_t I16 ){	return _mm_or_ps( RA, _mm_castsi128_ps(_mm_set1_epi32( I16 ) ) ); }
+typedef const int8_t  I8_t;
+typedef const int16_t I16_t;
+typedef const int32_t I32_t;
+typedef const int64_t I64_t;
+
+
+inline GPR_t si_ilh	( const int16_t I16 )			{ return _mm_castsi128_ps( _mm_set1_epi16( I16 ) ); }
+inline GPR_t si_ilhu( const int16_t I16 )			{ return _mm_castsi128_ps( _mm_set1_epi32( (int32_t)I16 << 16 ) ); }
+inline GPR_t si_il	( const int16_t I16 )			{ return _mm_castsi128_ps( _mm_set1_epi32( (int32_t)I16 ) ); }
+inline GPR_t si_ila	( const int32_t I18 )			{ return _mm_castsi128_ps( _mm_set1_epi32( 0x3FFFF & I18 ) ); }
+inline GPR_t si_iohl( GPR_t RA, const int16_t I16 )	{ return _mm_castsi128_ps( _mm_or_si128( _mm_castps_si128( RA ), _mm_set1_epi32( I16 ) ) ); }
+
 inline GPR_t si_fsmbi( const int16_t I16 ){
 	const __m128i mask_all_set = _mm_setr_epi8( 0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80i8,
 		0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80i8 );
@@ -137,7 +160,8 @@ inline GPR_t si_cg( GPR_t RA, GPR_t RB ){
 	const __m128i RB_shift		= _mm_srli_epi32( _mm_castps_si128( RB ), 1 );
 	const __m128i sum			= _mm_add_epi32( RA_shift, RB_shift );
 	const __m128i sum_adjusted	= _mm_add_epi32( sum, RA_and_RB_LSB );
-	return _mm_castsi128_ps( _mm_srli_epi32( sum_adjusted, 31 ) );
+	const __m128i carry			= _mm_srli_epi32( sum_adjusted, 31 );
+	return _mm_castsi128_ps( carry );
 }
 
 inline GPR_t si_cgx( GPR_t RA, GPR_t RB, GPR_t RT ){
@@ -156,7 +180,7 @@ inline GPR_t si_cgx( GPR_t RA, GPR_t RB, GPR_t RT ){
  * Sub Instructions 
  */
 
-
+// "sf a, b" -> "a substituted from b" -> "b - a"
 
 inline GPR_t si_sfh( GPR_t RA, GPR_t RB ){
 	return _mm_castsi128_ps( _mm_sub_epi16( _mm_castps_si128( RB ), _mm_castps_si128( RA ) ) );
@@ -207,24 +231,24 @@ inline GPR_t si_sfx( GPR_t RA, GPR_t RB, GPR_t RT )
 
 inline GPR_t si_mpy( GPR_t RA, GPR_t RB )
 {
-	const __m128i RA_lo		= _mm_srli_epi32( _mm_slli_epi32( _mm_castps_si128(RA), 16 ), 16 );
-	const __m128i RB_lo		= _mm_srli_epi32( _mm_slli_epi32( _mm_castps_si128(RB), 16 ), 16 );
+	const __m128i RT_lo		= _mm_mullo_epi16( _mm_castps_si128(RA), _mm_castps_si128(RB) );
+	const __m128i RT_hi		= _mm_mulhi_epi16( _mm_castps_si128(RA), _mm_castps_si128(RB) );
 
-	const __m128i res_lo	= _mm_mullo_epi16( RA_lo,  RB_lo ); 
-	const __m128i ires_hi	= _mm_mulhi_epi16( RA_lo,  RB_lo );
+	const __m128i RT_lo_32	= _mm_srli_epi32( _mm_slli_epi32( RT_lo, 16 ), 16 );
+	const __m128i RT_hi_32	= _mm_slli_epi32( RT_hi, 16 );
 
-	return _mm_castsi128_ps( _mm_or_si128( res_lo, _mm_slli_epi32(ires_hi, 16) ) );
+	return _mm_castsi128_ps( _mm_or_si128( RT_hi_32, RT_lo_32 ) ); 
 }
 
 inline GPR_t si_mpyu( GPR_t RA, GPR_t RB )
 {
-	const __m128i RA_lo		= _mm_and_si128( _mm_castps_si128(RA), _mm_set1_epi32(0x0000FFFF) );
-	const __m128i RB_lo		= _mm_and_si128( _mm_castps_si128(RB), _mm_set1_epi32(0x0000FFFF) );
+	const __m128i RT_lo		= _mm_mullo_epi16( _mm_castps_si128(RA), _mm_castps_si128(RB) );
+	const __m128i RT_hi		= _mm_mulhi_epu16( _mm_castps_si128(RA), _mm_castps_si128(RB) );
 
-	const __m128i res_lo	= _mm_mullo_epi16( RA_lo,  RB_lo );
-	const __m128i ures_hi	= _mm_mulhi_epu16( RA_lo,  RB_lo );
+	const __m128i RT_lo_32	= _mm_srli_epi32( _mm_slli_epi32( RT_lo, 16 ), 16 );
+	const __m128i RT_hi_32	= _mm_slli_epi32( RT_hi, 16 );
 
-	return _mm_castsi128_ps( _mm_or_si128( res_lo, _mm_slli_epi32(ures_hi, 16) ) );
+	return _mm_castsi128_ps( _mm_or_si128( RT_hi_32, RT_lo_32 ) ); 
 }
 
 inline GPR_t si_mpyi( GPR_t RA, int64_t IMM )
@@ -414,7 +438,7 @@ inline GPR_t si_avgb( GPR_t RA, GPR_t RB )
 
 	for ( size_t i = 0; i < 16; ++i )
 	{
-		RT.m128_u8[i] = ( (uint16_t)RA.m128_u8[i] + (uint16_t)RB.m128_u8[i] + 1 ) >> 1;
+		RT.m128_u8[i] = ( (uint16_t)RA.m128_u8[i] + (uint16_t)RB.m128_u8[i] + 1 ) / 2;
 	}
 
 	return RT;
@@ -451,6 +475,8 @@ inline GPR_t si_sumb( GPR_t RA, GPR_t RB )
 		sum_b += b8[i+3];
 		t32[i/4] = (sum_b << 16) | sum_a;
 	}
+
+	return RT;
 }
 
 inline GPR_t si_selb( GPR_t RA, GPR_t RB, GPR_t RC )
@@ -635,7 +661,7 @@ inline GPR_t si_andi( GPR_t RA, int16_t I10 ) {
 }
 
 inline GPR_t si_nand( GPR_t RA, GPR_t RB ) {
-	return _mm_andnot_ps( _mm_and_ps( RA, RB ), _mm_castsi128_ps( _mm_set1_epi32( 0xffffffff ) ) );
+	return _mm_andnot_ps( _mm_and_ps( RA, RB ), _mm_castsi128_ps( _MM_CONST_ALL( RA ) ) );
 }
 
 
@@ -821,36 +847,25 @@ inline GPR_t si_shli( GPR_t RA, int64_t IMM )
 	return _mm_castsi128_ps( _mm_slli_epi32( _mm_castps_si128( RA ), IMM & 0x3F ) );
 }
 
-inline GPR_t si_shlqbi( GPR_t RA, GPR_t RB )
-{
-	const size_t s = 0x7 & GPR_PREF_BYTE((__m128i&)RB);
-
-	const uint64_t _0 = RA.m128_u64[0];
-	const uint64_t _1 = RA.m128_u64[1];
-	const uint64_t leftover0 = _0 >> (64 - s);
-
-	__m128 RT;
-
-	RT.m128_u64[0] = (_0 << s);
-	RT.m128_u64[1] = (_1 << s) | leftover0;
-
-	return RT;
-}
-
 inline GPR_t si_shlqbii( GPR_t RA, int64_t IMM )
 {
 	const size_t s = 0x7 & IMM;
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	const uint64_t leftover0 = _0 >> (64 - s);
+	const uint64_t overflow0 = _0 >> (64 - s);
 
 	__m128 RT;
 
 	RT.m128_u64[0] = (_0 << s);
-	RT.m128_u64[1] = (_1 << s) | leftover0;
+	RT.m128_u64[1] = (_1 << s) | overflow0;
 
 	return RT;
+}
+
+inline GPR_t si_shlqbi( GPR_t RA, GPR_t RB )
+{
+	return si_shlqbii(RA, si_to_uint(RB));
 }
 
 inline GPR_t si_shlqby( GPR_t RA, GPR_t RB )
@@ -861,13 +876,13 @@ inline GPR_t si_shlqby( GPR_t RA, GPR_t RB )
 	{
 		const uint64_t _0 = RA.m128_u64[0];
 		const uint64_t _1 = RA.m128_u64[1];
-		const uint64_t leftover0 = _0 >> (64 - bytes*8);
-		//const uint64_t leftover1 = _1 >> (64 - bytes*8);
+		const uint64_t overflow0 = _0 >> (64 - bytes*8);
+		//const uint64_t overflow1 = _1 >> (64 - bytes*8);
 
 		__m128 RT;
 
-		RT.m128_u64[0] = (_0 << bytes*8);// | leftover1;
-		RT.m128_u64[1] = (_1 << bytes*8) | leftover0;
+		RT.m128_u64[0] = (_0 << bytes*8);// | overflow1;
+		RT.m128_u64[1] = (_1 << bytes*8) | overflow0;
 
 		return RT;
 	}
@@ -888,13 +903,13 @@ inline GPR_t si_shlqbybi( GPR_t RA, GPR_t RB )
 	{
 		const uint64_t _0 = RA.m128_u64[0];
 		const uint64_t _1 = RA.m128_u64[1];
-		const uint64_t leftover0 = _0 >> (64 - bytes*8);
-		//const uint64_t leftover1 = _1 >> (64 - bytes*8);
+		const uint64_t overflow0 = _0 >> (64 - bytes*8);
+		//const uint64_t overflow1 = _1 >> (64 - bytes*8);
 
 		__m128 RT;
 
-		RT.m128_u64[0] = (_0 << bytes*8);// | leftover1;
-		RT.m128_u64[1] = (_1 << bytes*8) | leftover0;
+		RT.m128_u64[0] = (_0 << bytes*8);// | overflow1;
+		RT.m128_u64[1] = (_1 << bytes*8) | overflow0;
 
 		return RT;
 	}
@@ -929,17 +944,7 @@ inline GPR_t si_rothi( GPR_t RA, int64_t IMM )
 	const __m128i left	= _mm_slli_epi16( _mm_castps_si128( RA ), s );
 	const __m128i right = _mm_srli_epi16( _mm_castps_si128( RA ), 16 - s );
 
-	return _mm_castsi128_ps( _mm_and_si128( left, right ) );
-
-
-	/*__m128 RT;
-
-	for ( int i = 0; i < 8; ++i )
-	{
-		RT.m128_u16[i] = _rotl16( RA.m128_u16[i], 0xF & IMM );
-	}
-
-	return RT;*/
+	return _mm_castsi128_ps( _mm_or_si128( left, right ) );
 }
 
 inline GPR_t si_rot( GPR_t RA, GPR_t RB )
@@ -948,7 +953,7 @@ inline GPR_t si_rot( GPR_t RA, GPR_t RB )
 
 	for ( int i = 0; i < 4; ++i )
 	{
-		RT.m128_u32[i] = _rotl( RA.m128_u32[i], 0xF & RB.m128_u32[i] );
+		RT.m128_u32[i] = _rotl( RA.m128_u32[i], 0x1F & RB.m128_u32[i] );
 	}
 
 	return RT;
@@ -956,38 +961,12 @@ inline GPR_t si_rot( GPR_t RA, GPR_t RB )
 
 inline GPR_t si_roti( GPR_t RA, int64_t IMM )
 {
-	const uint8_t s = IMM & 0xF;
+	const uint8_t s = IMM & 0x1F;
 
 	const __m128i left	= _mm_slli_epi32( _mm_castps_si128( RA ), s );
 	const __m128i right = _mm_srli_epi32( _mm_castps_si128( RA ), 32 - s );
 
-	return _mm_castsi128_ps( _mm_and_si128( left, right ) );
-
-	/*__m128 RT;
-
-	for ( int i = 0; i < 4; ++i )
-	{
-		RT.m128_u32[i] = _rotl( RA.m128_u32[i], 0xF & IMM );
-	}
-
-	return RT;*/
-}
-
-inline GPR_t si_rotqbi( GPR_t RA, GPR_t RB )
-{
-	const size_t s = 0x7 & si_to_uchar(RB);
-
-	const uint64_t _0 = RA.m128_u64[0];
-	const uint64_t _1 = RA.m128_u64[1];
-	const uint64_t leftover0 = _0 >> (64 - s);
-	const uint64_t leftover1 = _1 >> (64 - s);
-
-	__m128 RT;
-
-	RT.m128_u64[0] = (_0 << s) | leftover1;
-	RT.m128_u64[1] = (_1 << s) | leftover0;
-
-	return RT;
+	return _mm_castsi128_ps( _mm_or_si128( left, right ) );
 }
 
 inline GPR_t si_rotqbii( GPR_t RA, int64_t IMM )
@@ -996,46 +975,60 @@ inline GPR_t si_rotqbii( GPR_t RA, int64_t IMM )
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	const uint64_t leftover0 = _0 >> (64 - s);
-	const uint64_t leftover1 = _1 >> (64 - s);
+	const uint64_t overflow0 = _0 >> (64 - s);
+	const uint64_t overflow1 = _1 >> (64 - s);
 
 	__m128 RT;
 
-	RT.m128_u64[0] = (_0 << s) | leftover1;
-	RT.m128_u64[1] = (_1 << s) | leftover0;
+	RT.m128_u64[0] = (_0 << s) | overflow1;
+	RT.m128_u64[1] = (_1 << s) | overflow0;
 
 	return RT;
+}
+
+inline GPR_t si_rotqbi( GPR_t RA, GPR_t RB )
+{
+	return si_rotqbii(RA, si_to_int(RB));
+}
+
+inline GPR_t si_rotqbyi( GPR_t RA, int64_t IMM )
+{
+	__m128i RT = _mm_castps_si128(RA);
+
+	const uint8_t RotW = (0x0C & IMM) >> 2;
+	const uint8_t RotB = 0x03 & IMM;
+
+	switch (RotB)
+	{
+	case 1: RT = _mm_or_si128(_mm_slli_si128(_mm_castps_si128(RA), 1), _mm_srli_si128(_mm_castps_si128(RA), 15)); break;
+	case 2: RT = _mm_or_si128(_mm_slli_si128(_mm_castps_si128(RA), 2), _mm_srli_si128(_mm_castps_si128(RA), 14)); break;
+	case 3: RT = _mm_or_si128(_mm_slli_si128(_mm_castps_si128(RA), 3), _mm_srli_si128(_mm_castps_si128(RA), 13)); break;
+	}
+
+	switch (RotW)
+	{
+	case 1: RT = _mm_shuffle_epi32(RT, _MM_SHUFFLE(2,1,0,3)); break;
+	case 2: RT = _mm_shuffle_epi32(RT, _MM_SHUFFLE(1,0,3,2)); break;
+	case 3: RT = _mm_shuffle_epi32(RT, _MM_SHUFFLE(0,3,2,1)); break;
+	}
+
+	return _mm_castsi128_ps(RT);
 }
 
 inline GPR_t si_rotqby( GPR_t RA, GPR_t RB )
 {
-	const uint8_t RotVal = 0xF & si_to_uchar(RB);
-
-	__m128 RT;
-
-	memcpy( ((char*)&RT), ((char*)&RA) + 16 - RotVal, RotVal );
-	memcpy( ((char*)&RT) + RotVal, ((char*)&RA), 16 - RotVal );
-
-	return RT;
+	return si_rotqbyi(RA, si_to_uchar(RB));
 }
-
-#define si_rotqbyi( RA, IMM )\
-	_mm_castsi128_ps( _mm_and_si128( \
-	_mm_slli_si128( _mm_castps_si128(RA), (IMM&0xF) ), \
-	_mm_srli_si128( _mm_castps_si128(RA), (16 - (IMM&0xF)) ) ) )
 
 inline GPR_t si_rotqbybi( GPR_t RA, GPR_t RB )
 {
-	const uint8_t RotVal = 0xF & (si_to_uchar(RB) >> 3);
-
-	__m128 RT;
-
-	memcpy( ((char*)&RT), ((char*)&RA) + 16 - RotVal, RotVal );
-	memcpy( ((char*)&RT) + RotVal, ((char*)&RA), 16 - RotVal );
-
-	return RT;
+	return si_rotqbyi(RA, si_to_uchar(RB) >> 3);
 }
 
+//#define si_rotqbyi( RA, IMM )\
+//	_mm_castsi128_ps( _mm_and_si128( \
+//	_mm_slli_si128( _mm_castps_si128(RA), (IMM&0xF) ), \
+//	_mm_srli_si128( _mm_castps_si128(RA), (16 - (IMM&0xF)) ) ) )
 
 /************************************************************************/
 /* Rotate right and mask                                                */
@@ -1082,13 +1075,13 @@ inline GPR_t si_rotqmbi( GPR_t RA, GPR_t RB )
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	//const uint64_t leftover0 = _0 << (64 - s);
-	const uint64_t leftover1 = _1 << (64 - s);
+	//const uint64_t overflow0 = _0 << (64 - s);
+	const uint64_t overflow1 = _1 << (64 - s);
 
 	__m128 RT;
 
-	RT.m128_u64[0] = (_0 >> s) | leftover1;
-	RT.m128_u64[1] = (_1 >> s);// | leftover0;
+	RT.m128_u64[0] = (_0 >> s) | overflow1;
+	RT.m128_u64[1] = (_1 >> s);// | overflow0;
 
 	return RT;
 }
@@ -1099,13 +1092,13 @@ inline GPR_t si_rotqmbii( GPR_t RA, int64_t IMM )
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	//const uint64_t leftover0 = _0 << (64 - s);
-	const uint64_t leftover1 = _1 << (64 - s);
+	//const uint64_t overflow0 = _0 << (64 - s);
+	const uint64_t overflow1 = _1 << (64 - s);
 
 	__m128 RT;
 
-	RT.m128_u64[0] = (_0 >> s) | leftover1;
-	RT.m128_u64[1] = (_1 >> s);// | leftover0;
+	RT.m128_u64[0] = (_0 >> s) | overflow1;
+	RT.m128_u64[1] = (_1 >> s);// | overflow0;
 
 	return RT;
 }
@@ -1116,13 +1109,13 @@ inline GPR_t si_rotqmby( GPR_t RA, GPR_t RB )
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	//const uint64_t leftover0 = _0 << (64 - s);
-	const uint64_t leftover1 = _1 << (64 - 8*s);
+	//const uint64_t overflow0 = _0 << (64 - s);
+	const uint64_t overflow1 = _1 << (64 - 8*s);
 
 	__m128 RT;
 
-	RT.m128_u64[0] = (_0 >> 8*s) | leftover1;
-	RT.m128_u64[1] = (_1 >> 8*s);// | leftover0;
+	RT.m128_u64[0] = (_0 >> 8*s) | overflow1;
+	RT.m128_u64[1] = (_1 >> 8*s);// | overflow0;
 
 	return RT;
 }
@@ -1136,13 +1129,13 @@ inline GPR_t si_rotqmbybi( GPR_t RA, GPR_t RB )
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
-	//const uint64_t leftover0 = _0 << (64 - s);
-	const uint64_t leftover1 = _1 << (64 - 8*s);
+	//const uint64_t overflow0 = _0 << (64 - s);
+	const uint64_t overflow1 = _1 << (64 - 8*s);
 
 	__m128 RT;
 
-	RT.m128_u64[0] = (_0 >> 8*s) | leftover1;
-	RT.m128_u64[1] = (_1 >> 8*s);// | leftover0;
+	RT.m128_u64[0] = (_0 >> 8*s) | overflow1;
+	RT.m128_u64[1] = (_1 >> 8*s);// | overflow0;
 
 	return RT;
 }
@@ -1181,14 +1174,92 @@ inline GPR_t si_rotmai( GPR_t RA, int64_t IMM )
 	return _mm_castsi128_ps( _mm_srai_epi32( _mm_castps_si128( RA ), 0x3F & (0 - IMM) ) );
 }
 
-//#define si_rotqmbyi( RA, IMM )\
-//	_mm_castsi128_ps( _mm_srli_si128( _mm_castps_si128(RA), -int8_t(IMM) ) )
-
 // Channel
 
-GPR_t	si_rdch( int64_t IMM )			{ return _mm_setzero_ps(); }
-GPR_t	si_rchcnt( int64_t IMM )		{ return _mm_setzero_ps(); }
-void	si_wrch( int64_t IMM, GPR_t RA ){} 
+enum SPEChannels
+{
+	$SPU_RdEventStat = 0,
+	$SPU_WrEventMask,
+	$SPU_WrEventAck,
+	$SPU_RdSigNotify1,
+	$SPU_RdSigNotify2,
+	$5,
+	$6,
+	$SPU_WrDec,
+	$SPU_RdDec,
+	$MFC_WrMSSyncReq,
+	$11,
+	$SPU_RdEventMask,
+	$MFC_RdTagMask,
+	$SPU_RdMachStat,
+	$SPU_WrSRR0,
+	$SPU_RdSRR0,
+	$MFC_LSA,
+	$MFC_EAH,
+	$MFC_EAL,
+	$MFC_Size,
+	$MFC_TagID,
+	$MFC_Cmd,
+	$MFC_WrTagMask,
+	$MFC_WrTagUpdate,
+	$MFC_RdTagStat,
+	$MFC_RdListStallStat,
+	$MFC_WrListStallAck,
+	$MFC_RdAtomicStat, 
+	$SPU_WrOutMbox, 
+	$SPU_RdInMbox, 
+	$SPU_WrOutIntrMbox
+};
+
+uint32_t Channels[128];
+uint8_t ChannelCount[128] =
+{
+	0,1,1,0,0,0,0,0,1,1,
+	0,0,1,1,1,1,1,1,1,1,
+	1,1,0,0,0,1,0,0,0,0,
+	0
+};
+
+GPR_t	si_rdch( int64_t IMM )			{ 
+	return _mm_setzero_ps(); 
+}
+GPR_t	si_rchcnt( int64_t IMM )		{ 
+	return _mm_setzero_ps(); 
+}
+void	si_wrch( int64_t IMM, GPR_t RA ){
+	const uint8_t ChannelIndex = IMM & 0x7f;
+
+	switch ( ChannelIndex )
+	{
+	case $SPU_WrEventMask:
+	case $SPU_WrEventAck:
+	case $SPU_WrDec:
+		Channels[ChannelIndex] = si_to_uint(RA); break;
+	case $MFC_WrMSSyncReq:
+		break;
+	case $SPU_WrSRR0:
+	case $MFC_LSA:
+	case $MFC_EAH:
+	case $MFC_EAL:
+		Channels[ChannelIndex] = si_to_uint(RA); break;
+	case $MFC_Size:
+	case $MFC_TagID:
+		Channels[ChannelIndex] = si_to_ushort(RA); break;
+	case $MFC_Cmd:
+	case $MFC_WrTagMask:
+		Channels[ChannelIndex] = si_to_uint(RA); break;
+	case $MFC_WrTagUpdate:
+		break;
+	case $MFC_WrListStallAck:
+		Channels[ChannelIndex] = si_to_uint(RA); break;
+	case $SPU_WrOutMbox:
+		break;
+	case $SPU_WrOutIntrMbox:
+		break;
+	default:
+		break;
+	}
+} 
 
 // Misc
 

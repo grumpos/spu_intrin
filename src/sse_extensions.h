@@ -1,7 +1,7 @@
 #include <intrin.h>
 
-#define _mm_srli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)((uint8_t)0xFF >> _Imm)), _mm_srli_epi32( _A, _Imm ) )
-#define _mm_slli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)0xFF << _Imm), _mm_slli_epi32( _A, _Imm ) )
+#define _mm_srli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)(0xFF >> _Imm)), _mm_srli_epi32( _A, _Imm ) )
+#define _mm_slli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)(uint8_t)(0xFF & (0xFF << _Imm))), _mm_slli_epi32( _A, _Imm ) )
 
 struct xmm_register
 {
@@ -117,9 +117,13 @@ struct xmm_register
 #ifdef __CONSTANTS_FROM_MEMORY__
 #	define _MM_CONST_1		_mm_set1_epi32(1)
 #	define _MM_CONST_1(r)	_MM_CONST_1
+#	define _MM_CONST_ALL	_mm_set1_epi32( 0xFFFFFFFF )
+#	define _MM_CONST_ALL(r)	_MM_CONST_ALL
 #else
 #	define _MM_CONST_1		(_mm_srli_epi32(_mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()), 31))
 #	define _MM_CONST_1(r)	(_mm_srli_epi32(_mm_cmpeq_epi32(*(__m128i*)&(r), *(__m128i*)&(r)), 31))
+#	define _MM_CONST_ALL	_mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128())
+#	define _MM_CONST_ALL(r)	_mm_cmpeq_epi32(*(__m128i*)&(r), *(__m128i*)&(r))
 #endif
 
 
@@ -175,8 +179,6 @@ inline __m128i _mm_cmpgt_epu8( __m128i _A, __m128i _B )
 	return _mm_or_si128( less_shifted, _mm_and_si128( equal_shifted, less_LSB ) );
 }
 
-
-
 inline __m128i _mm_cntb_epui8( __m128i _A )
 {
 	const __m128i _55 = _mm_set1_epi32(0x55555555);
@@ -201,8 +203,8 @@ inline __m128i _mm_cntb_epi32( __m128i _A )
 
 	// 32 bit mul
 	auto p0 = _mm_mul_epu32( t2, _01 );
-	auto p1 = _mm_mul_epu32( _mm_srli_si128(t2, 4), _mm_srli_si128(_01, 4) );
-	auto p3 = _mm_shuffle_ps(_mm_castsi128_ps(p0), _mm_castsi128_ps(p1), _MM_SHUFFLE (2,0,2,0));
+	auto p1 = _mm_mul_epu32( _mm_srli_si128(t2, 4), _01 );
+	auto p2 = _mm_shuffle_ps(_mm_castsi128_ps(p0), _mm_castsi128_ps(p1), _MM_SHUFFLE (2,0,2,0));
 
-	return _mm_srli_epi32( _mm_castps_si128(p3), 24 );
+	return _mm_srli_epi32( _mm_castps_si128(p2), 24 );
 }

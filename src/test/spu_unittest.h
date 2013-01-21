@@ -7,17 +7,24 @@ void SPUTest_ReportErrors();
 
 void SPUTest_Expect( __m128 Result, __m128 Expected, const char* ErrorMsg );
 
-struct xmm_proxy
+class xmm_proxy
 {
-	__m128 data_;
+public:
+	__m128 data;
 
-	inline xmm_proxy( __m128 x ) : data_(x) {}
-	inline xmm_proxy( __m128i x ) : data_(_mm_castsi128_ps(x)) {}
-	inline xmm_proxy( __m128d x ) : data_(_mm_castpd_ps(x)) {}
+public:
+	xmm_proxy()
+		: data(_mm_setzero_ps())
+	{
+	}
 
-	inline operator __m128() const { return data_; }
-	inline operator __m128i() const { _mm_castps_si128(data_); }
-	inline operator __m128d() const { _mm_castps_pd(data_); }
+	inline xmm_proxy( __m128 x ) : data(x) {}
+	inline xmm_proxy( __m128i x ) : data(_mm_castsi128_ps(x)) {}
+	inline xmm_proxy( __m128d x ) : data(_mm_castpd_ps(x)) {}
+
+	inline operator __m128() const { return data; }
+	inline operator __m128i() const { _mm_castps_si128(data); }
+	inline operator __m128d() const { _mm_castps_pd(data); }
 };
 
 

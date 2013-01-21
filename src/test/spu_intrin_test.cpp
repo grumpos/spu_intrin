@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <cassert>
 #include "..\..\src\spu_internals_x86.h"
 #include "spu_unittest.h"
@@ -11,8 +12,64 @@ using namespace std;
 	_byteswap_ulong((xmm).m128i_u32[1]), \
 	_byteswap_ulong((xmm).m128i_u32[0]) ) )
 
+ostream& operator<<(ostream& os, __m128 xmm)
+{
+	os << hex << setw(16) << setfill('0') << xmm.m128_u64[0] << hex << setw(16) << setfill('0') << xmm.m128_u64[1];
+	return os;
+}
+
+template<class T>
+void TestImpl(T expected, T got, const string& expr)
+{
+	if (expected != got) 
+		cout << "FAILED:\t" << expr << endl 
+		<< "\tGOT:\t" << hex << setw(sizeof(T) * 2) << setfill('0') << got 
+		<< "\tEXPECTED:\t" << hex << setw(sizeof(T) * 2) << setfill('0') << expected << endl;
+};
+
+
+#define TEST(expected, expr) TestImpl((expected), (expr), #expected" == "#expr);
+
+//#define TEST(expected, expr) { auto result = (expr); if (expected != result) cout << "FAILED:\t" << #expr << endl << "\tGOT:\t" << result << "\tEXPECTED:\t" << expected << endl; }
+
 int main( int argc, char** argv )
 {
+	_CRT_ALIGN(16) uint8_t DataBE[16] = { 0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf };
+	// 0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0a0b, 0x0c0d, 0x0e0f
+	// 0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f
+	// 0x0001020304050607, 0x08090a0b0c0d0e0f
+
+	xmm_proxy RA = BSWAP128(*(__m128i*)DataBE);
+	xmm_proxy RT;
+	
+	TEST( 0x00010203, si_to_int(RA) );
+
+	// si_roth
+	RT = si_roth(RA, (xmm_proxy)si_from_int(0));
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_roth(RA, (xmm_proxy)_mm_set1_epi16(1));
+	TEST( 0x00020406, si_to_int(RT) );
+
+	// si_rothi
+	RT = si_rothi(RA, 0);
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_rothi(RA, 1);
+	TEST( 0x00020406, si_to_int(RT) );
+
+	// si_rotqby
+	RT = si_rotqby(RA, (xmm_proxy)si_from_int(0));
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_rotqby(RA, (xmm_proxy)si_from_int(1));
+	TEST( 0x01020304, si_to_int(RT) );
+	RT = si_rotqby(RA, (xmm_proxy)si_from_int(4));
+	TEST( 0x04050607, si_to_int(RT) );
+	RT = si_rotqby(RT, (xmm_proxy)si_from_int(4));
+	TEST( 0x08090a0b, si_to_int(RT) );
+	RT = si_rotqby(RT, (xmm_proxy)si_from_int(4));
+	TEST( 0x0c0d0e0f, si_to_int(RT) );
+	RT = si_rotqby(RT, (xmm_proxy)si_from_int(4)); 
+	TEST( 0x00010203, si_to_int(RT) );
+
 	_CRT_ALIGN(16) uint8_t LE_buf[] = { 0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf };
 	__m128 BE = BSWAP128(*(__m128i*)LE_buf);
 	__m128 LE = BSWAP128((__m128i&)BE);
@@ -40,6 +97,8 @@ int main( int argc, char** argv )
 	if ( s6 != (int32_t)0x80000000 ) cout << "si_to_int...FAIL" << endl;
 	if ( s7 != 0x8000000000000000 ) cout << "si_to_ullong...FAIL" << endl;
 	if ( s8 != (int64_t)0x8000000000000000 ) cout << "si_to_llong...FAIL" << endl;
+
+	__SPU_TEST_RR( si_nand, _mm_set1_epi16(1), _mm_set1_epi16(3), _mm_set1_epi16(0xfffe) )
 
 	__SPU_TEST_RR( si_ah, _mm_set1_epi16(1), _mm_set1_epi16(1), _mm_set1_epi16(2) )
 
@@ -75,8 +134,8 @@ int main( int argc, char** argv )
 
 		__SPU_TEST_RR(
 		si_mpy,
-		_mm_set1_epi32(0xFFFFi16),
-		_mm_set1_epi32(0xFi16),
+		_mm_set1_epi16(0xFFFFi16),
+		_mm_set1_epi16(0xFi16),
 		_mm_set1_epi32(0xFFFFi16 * 0xFi16))
 
 		__SPU_TEST_RR(
