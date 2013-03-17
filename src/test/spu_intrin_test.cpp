@@ -28,11 +28,11 @@ void TestImpl(T expected, T got, const string& expr)
 };
 
 
-#define TEST(expected, expr) TestImpl((expected), (expr), #expected" == "#expr);
+#define TEST(expected, expr) TestImpl(decltype(expr)(expected), (expr), #expected" == "#expr);
 
 //#define TEST(expected, expr) { auto result = (expr); if (expected != result) cout << "FAILED:\t" << #expr << endl << "\tGOT:\t" << result << "\tEXPECTED:\t" << expected << endl; }
 
-int main( int argc, char** argv )
+int main( int , char**  )
 {
 	_CRT_ALIGN(16) uint8_t DataBE[16] = { 0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf };
 	// 0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0a0b, 0x0c0d, 0x0e0f
@@ -70,6 +70,38 @@ int main( int argc, char** argv )
 	RT = si_rotqby(RT, (xmm_proxy)si_from_int(4)); 
 	TEST( 0x00010203, si_to_int(RT) );
 
+	// si_ah
+	RT = si_ah(RA, (xmm_proxy)si_from_int(0));
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_ah(RA, (xmm_proxy)_mm_set1_epi16(1));
+	TEST( 0x00020204, si_to_int(RT) );
+	RT = si_ah((xmm_proxy)_mm_set1_epi32(0xFFFFFFFF), (xmm_proxy)si_from_int(1));
+	TEST( 0xFFFF0000, si_to_int(RT) );
+
+	// si_ahi
+	RT = si_ahi(RA, 0);
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_ahi(RA, 1);
+	TEST( 0x00020204, si_to_int(RT) );
+	RT = si_ahi((xmm_proxy)_mm_set1_epi32(0xFFFFFFFF), 1);
+	TEST( 0x00000000, si_to_int(RT) );
+
+	// si_a
+	RT = si_a(RA, (xmm_proxy)si_from_int(0));
+	TEST( 0x00010203, si_to_int(RT) );
+	RT = si_a(RA, (xmm_proxy)_mm_set1_epi32(1));
+	TEST( 0x00010204, si_to_int(RT) );
+	RT = si_a((xmm_proxy)_mm_set1_epi32(0xFFFFFFFF), (xmm_proxy)si_from_int(1));
+	TEST( 0x00000000, si_to_int(RT) );
+
+		__SPU_TEST_RI( si_ai, _mm_set1_epi32(1), 1ui32, _mm_set1_epi32(2) )
+
+		__SPU_TEST_RRR( si_addx, _mm_set1_epi32(1), _mm_set1_epi32(1), _mm_set1_epi32(1), _mm_set1_epi32(3) )
+
+		__SPU_TEST_RR( si_cg, _mm_set1_epi32(0xFFFFFFFF), _mm_set1_epi32(1), _mm_set1_epi32(1) )
+
+		__SPU_TEST_RRR( si_cgx, _mm_set1_epi32(0xFFFFFFFE), _mm_set1_epi32(1), _mm_set1_epi32(1), _mm_set1_epi32(1) )
+
 	_CRT_ALIGN(16) uint8_t LE_buf[] = { 0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf };
 	__m128 BE = BSWAP128(*(__m128i*)LE_buf);
 	__m128 LE = BSWAP128((__m128i&)BE);
@@ -99,10 +131,6 @@ int main( int argc, char** argv )
 	if ( s8 != (int64_t)0x8000000000000000 ) cout << "si_to_llong...FAIL" << endl;
 
 	__SPU_TEST_RR( si_nand, _mm_set1_epi16(1), _mm_set1_epi16(3), _mm_set1_epi16(0xfffe) )
-
-	__SPU_TEST_RR( si_ah, _mm_set1_epi16(1), _mm_set1_epi16(1), _mm_set1_epi16(2) )
-
-	__SPU_TEST_RI( si_ahi, _mm_set1_epi16(1), 1, _mm_set1_epi16(2) )
 
 	__SPU_TEST_RR( si_a, _mm_set1_epi32(1), _mm_set1_epi32(1), _mm_set1_epi32(2) )
 

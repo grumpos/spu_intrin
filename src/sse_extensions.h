@@ -3,13 +3,13 @@
 #define _mm_srli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)(0xFF >> _Imm)), _mm_srli_epi32( _A, _Imm ) )
 #define _mm_slli_epi8( _A, _Imm ) _mm_and_si128( _mm_set1_epi8((int8_t)(uint8_t)(0xFF & (0xFF << _Imm))), _mm_slli_epi32( _A, _Imm ) )
 
-struct xmm_register
+struct xmm_t
 {
 	__m128 data_;
 
-	inline xmm_register( __m128 x )		: data_(x) {}
-	inline xmm_register( __m128i x )	: data_(_mm_castsi128_ps(x)) {}
-	inline xmm_register( __m128d x )	: data_(_mm_castpd_ps(x)) {}
+	inline xmm_t( __m128 x )	: data_(x) {}
+	inline xmm_t( __m128i x )	: data_(_mm_castsi128_ps(x)) {}
+	inline xmm_t( __m128d x )	: data_(_mm_castpd_ps(x)) {}
 
 	inline operator const __m128() const	{ return data_; }
 	inline operator const __m128i() const	{ return _mm_castps_si128(data_); }

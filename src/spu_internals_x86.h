@@ -18,10 +18,6 @@ correct big endian value.
 #include <cstdint>
 #include "sse_extensions.h"
 
-#define GPR_PREF_WORD(r) si_to_uint((r))
-#define GPR_PREF_HALF(r) _mm_extract_epi16((r), 6)
-#define GPR_PREF_BYTE(r) (_mm_extract_epi16((r), 6) & 0xFF)
-
 typedef __m128 GPR_t;
 
 static const __m128i __fsmb_mask_8 = _mm_setr_epi8( 0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80,
@@ -342,7 +338,7 @@ inline GPR_t si_cntb( GPR_t RA )
 
 inline GPR_t si_fsmb( GPR_t RA )
 {
-	const uint16_t mask = GPR_PREF_HALF(_mm_castps_si128( RA ));
+	const uint16_t mask = si_to_ushort(RA);
 
 	__m128i mask_lo_byte_sat = _mm_srli_si128( _mm_set1_epi8( mask & 0xff ), 8 );
 	__m128i mask_hi_byte_sat = _mm_slli_si128( _mm_set1_epi8( (mask >> 8) & 0xff ), 8 );
@@ -354,7 +350,7 @@ inline GPR_t si_fsmb( GPR_t RA )
 
 inline GPR_t si_fsmh( GPR_t RA )
 {
-	const uint8_t mask = GPR_PREF_BYTE(_mm_castps_si128( RA ));
+	const uint8_t mask = si_to_uchar(RA);
 
 	return _mm_castsi128_ps( 
 		_mm_cmpeq_epi16( 
@@ -366,7 +362,7 @@ inline GPR_t si_fsmh( GPR_t RA )
 
 inline GPR_t si_fsm( GPR_t RA )
 {
-	const uint8_t mask = GPR_PREF_BYTE(_mm_castps_si128( RA ));
+	const uint8_t mask = si_to_uchar(RA);
 
 	return _mm_castsi128_ps( 
 		_mm_cmpeq_epi32( 
@@ -870,7 +866,7 @@ inline GPR_t si_shlqbi( GPR_t RA, GPR_t RB )
 
 inline GPR_t si_shlqby( GPR_t RA, GPR_t RB )
 {
-	const size_t bytes = 0x1F & GPR_PREF_BYTE(_mm_castps_si128(RB));
+	const size_t bytes = 0x1F & si_to_uchar(RB);
 
 	if ( bytes < 16 )
 	{
@@ -897,7 +893,7 @@ inline GPR_t si_shlqby( GPR_t RA, GPR_t RB )
 
 inline GPR_t si_shlqbybi( GPR_t RA, GPR_t RB )
 {
-	const size_t bytes = 0x1F & (GPR_PREF_BYTE(_mm_castps_si128(RB)) >> 3);
+	const size_t bytes = 0x1F & (si_to_uchar(RB) >> 3);
 
 	if ( bytes < 16 )
 	{
@@ -1071,7 +1067,7 @@ inline GPR_t si_rotmi( GPR_t RA, int64_t IMM )
 
 inline GPR_t si_rotqmbi( GPR_t RA, GPR_t RB )
 {
-	const size_t s = 0x07 & (0 - GPR_PREF_BYTE(_mm_castps_si128(RB)));
+	const size_t s = 0x07 & (0 - si_to_uchar(RB));
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
@@ -1105,7 +1101,7 @@ inline GPR_t si_rotqmbii( GPR_t RA, int64_t IMM )
 
 inline GPR_t si_rotqmby( GPR_t RA, GPR_t RB )
 {
-	const size_t s = 0x1F & (0 - GPR_PREF_BYTE(_mm_castps_si128(RB)));
+	const size_t s = 0x1F & (0 - si_to_uchar(RB));
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
@@ -1125,7 +1121,7 @@ inline GPR_t si_rotqmby( GPR_t RA, GPR_t RB )
 
 inline GPR_t si_rotqmbybi( GPR_t RA, GPR_t RB )
 {
-	const size_t s = 0x1F & (0 - (GPR_PREF_BYTE(_mm_castps_si128(RB))>>3));
+	const size_t s = 0x1F & (0 - (si_to_uchar(RB) >> 3));
 
 	const uint64_t _0 = RA.m128_u64[0];
 	const uint64_t _1 = RA.m128_u64[1];
